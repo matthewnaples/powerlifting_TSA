@@ -28,6 +28,12 @@ d<- read_csv("openpowerlifting.csv")
 d %>% group_by(Name) %>% summarize(n=n())
 ```
 
+# Abstract
+
+In this project, I attempt to forecast the average strength (measured in IPFPoints) of the population of Raw Powerlifters using data supplied by [openpowerlifting.org](https://www.openpowerlifting.org/). Because the data appears to be a stationary procecss with a linear trend I detrended the data three different ways, and fit 1 to 3 ARIMA models for each detrended dataset. This yielded a pool of 7 tentative ARIMA models. I then compared all models trained on a given detrended datasets, and chose the best model from each,  leaving 3 candidate models for the forecase. I compared the three candidates by comparing the residuals of each model (since BIC cannot be compared across datasets) and their Sum-Squared Error when predicting on test observations. Not surprisingly, the best models included the previous year's observation in the same month. The two best models, Model 1 and Model 7 below, had a Root Mean Squared Error of  ~6.66 and  ~6.14 IPFpoints respectively. These numbers are not exactly interpretable because the IPFPoints score depends on the weight and sex of an individual. However, to give a rough idea, if I were to be off by 7 points when estimating an 83kg (~183lb) male, that would be about a 6kg error. Since my model predicts the population averages and not individual scores, such an interpretation cannot directly be applied to the forecast. Once the top models were selected, I refit those models using the entire dataset, and forecasted future observations. I'm waiting for openpowerlifting.org to update their numbers so I can validate the forecast against real data.
+
+
+
 
 
 # Background
@@ -517,14 +523,14 @@ sum(( test$avgIPFPoints  -(linearPart1+arimaPart$m1Pred) )^2)
 #model 2 SSE
 sum(( test$avgIPFPoints  -(linearPart1+arimaPart$m2Pred) )^2)
 
-#model 3 SSE #arma(12,12) 1st and 12th AR coeff, 1st and 12th ma coeffs
+#model 3 SSE 
 
 sum(( test$avgIPFPoints  -(linearPart1+arimaPart$m3Pred) )^2)
 
 #model 4 SSE
 sum(( test$avgIPFPoints  -(linearPart2+arimaPart$m4Pred) )^2)
 
-#model 5 SSE  #arma(12,12) ar12,e1,e12 OLD VERSION with 146 sse
+#model 5 SSE  
 sum(( test$avgIPFPoints  -(linearPart2+arimaPart$m5Pred) )^2)
 
 #model 6 SSE
@@ -539,16 +545,25 @@ Let's compare the SSE between the three candidate models.
 ```{r}
 #model 1 SSE
 sum(( test$avgIPFPoints  -(linearPart1+arimaPart$m1Pred) )^2)
+sqrt((sum(( test$avgIPFPoints  -(linearPart1+arimaPart$m1Pred) )^2)/5))
+
 
 #model 5 SSE
 sum(( test$avgIPFPoints  -(linearPart2+arimaPart$m5Pred) )^2)
-
+sqrt((sum(( test$avgIPFPoints  -(linearPart2+arimaPart$m5Pred) )^2)/5))
 #model 7 SSE
 sum(( test$avgIPFPoints  -(linearPart3+arimaPart$m7Pred) )^2)
+sqrt((sum((  test$avgIPFPoints  -(linearPart3+arimaPart$m7Pred) )^2)/5))
+149.41-142.31
+156.5-149.41
+
+376.5-369.4
+490.05-482.95
+#206 kg - 200 kg
 ```
 
 Since model 5 had autocorrelation in the residuals and by far the highest SSE, the top two models for forecasting will be models 1 and 7.
-
+To give some interpretation, Model 1 had a root MSE of ~6.66 IPFPoints, and Model 7 had a root MSE of ~6.14 IPFpoints. This difference cannot be directly converted back into `TotalKG` or `TotalLB`, as IPFPoints maps to many different totals dependeng on the weight and sex of the individual. However, for the sake of example, if I were to estimate an 83kg male's (~183lb) IPFPoint score, and I was off by 7 points, that would translate to an error of about 6kg.
 
 # Refitting top two models with the whole dataset for forecast
 Now I will fit models 1 and 7 to the whole dataset
