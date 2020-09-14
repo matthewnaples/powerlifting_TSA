@@ -609,7 +609,7 @@ m7f$fit
 ```
 
 
-## top 2 model's equation
+## top 2 models' equations
 
 
 These are the following model Equations:
